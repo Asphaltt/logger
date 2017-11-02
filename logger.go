@@ -54,7 +54,7 @@ func check() {
 	newLog, err := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		log.SetOutput(logDefault)
-		log.Println("cannot create the log file, log in STDOUT")
+		log.Println("cannot create the log file, log in", logDefault.Name())
 		return
 	}
 	logFile.Sync()
@@ -66,8 +66,18 @@ func check() {
 func Setup(isDebug, isVerbose bool, dir string, outputDefault *os.File) {
 	debug = isDebug
 	verbose = isVerbose
-	logDir = dir
 	logDefault = outputDefault
+	if dir[0] == '/' {
+		logDir = dir
+		return
+	}
+	_dir, _ := filepath.Split(os.Args[0])
+	_d, e := filepath.Abs(_dir)
+	if e != nil {
+		logDir = filepath.Join(_dir, dir)
+	} else {
+		logDir = filepath.Join(_d, dir)
+	}
 }
 
 func Log(v ...interface{}) {
